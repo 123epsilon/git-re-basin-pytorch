@@ -9,15 +9,19 @@ from utils.training import test
 from tqdm import tqdm
 import copy
 import matplotlib.pyplot as plt
+import os
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_a", type=str, required=True)
     parser.add_argument("--model_b", type=str, required=True)
+    parser.add_argument('--tag', type=str, required=True)
     parser.add_argument("--seed", type=int, default=0, help="Random seed")
     parser.add_argument('--width-multiplier', type=int, default=2)
     parser.add_argument('--depth', type=int, default=22)
+    parser.add_argument('--output-dir', type=str, default="./figs")
+    
     args = parser.parse_args()
 
     # load models
@@ -93,7 +97,12 @@ def main():
 
     fig = plot_interp_acc(lambdas, train_acc_interp_naive, test_acc_interp_naive,
                     train_acc_interp_clever, test_acc_interp_clever)
-    plt.savefig(f"cifar10_resnet{str(args.depth)}_{str(args.width_multiplier)}_weight_matching_interp_accuracy_epoch.png", dpi=300)
+    
+    fig_path = os.path.join(args.output_dir, args.tag)
+    os.makedirs(fig_path, exist_ok=True)
+    fig_fp = os.path.join(fig_path, f"cifar10_resnet{str(args.depth)}_{str(args.width_multiplier)}_weight_matching_interp_accuracy_epoch.png")
+
+    plt.savefig(fig_fp, dpi=300)
 
 if __name__ == "__main__":
   main()

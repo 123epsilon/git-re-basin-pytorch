@@ -1,5 +1,6 @@
 import torch.nn.functional as F
 import torch
+        
 
 def train(args, model, device, train_loader, optimizer, epoch, softmax=False):
     model.train()
@@ -22,6 +23,8 @@ def train(args, model, device, train_loader, optimizer, epoch, softmax=False):
                 100. * batch_idx / len(train_loader), loss.item()))
     acc = 100. * correct / len(train_loader.dataset)
     print('Train Accuracy: ({:.0f}%) '.format(acc))
+
+    return acc
 
 
 def test(model, device, test_loader, softmax=False):

@@ -4,6 +4,7 @@ from models.resnet import ResNet
 import torch.optim as optim
 from torchvision import datasets, transforms
 from utils.training import train, test
+from utils.utils import save_model
 
 def main():
     parser = argparse.ArgumentParser()
@@ -65,13 +66,18 @@ def main():
         optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=args.lr, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
 
+    best_acc = 0.0
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch, True)
+        train_acc = train(args, model, device, train_loader, optimizer, epoch, True)
         test(model, device, test_loader, True)
         scheduler.step()
 
-    torch.save(model.state_dict(), f"cifar10_{str(args.seed)}_resnet_depth_{str(args.depth)}_{str(args.width_multiplier)}.pt")
-
+        if train_acc > best_acc:
+                best_acc = train_acc
+                save_model(model, 
+                           checkpoint_name=f"cifar10_{str(args.seed)}_resnet_depth_{str(args.depth)}_{str(args.width_multiplier)}.pt",
+                           experiment_name=f"resnet{str(args.depth)}_cifar10"
+                           )
 
 if __name__ == "__main__":
   main()
