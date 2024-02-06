@@ -63,7 +63,7 @@ def main():
     if args.opt == "adam":
         optimizer = optim.Adam(model.parameters(), lr=args.lr)
     else:
-        optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=args.lr, weight_decay=1e-4)
+        optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=args.lr, weight_decay=5e-4)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
 
     best_acc = 0.0

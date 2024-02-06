@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--width-multiplier', type=int, default=2)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--split-overlap", type=float, default=0.2)
     parser.add_argument('--log-interval', type=int, default=10, metavar='N',help='how many batches to wait before logging training status')
     args = parser.parse_args()
 
@@ -29,13 +30,12 @@ def main():
 
 
     # load split datasets
-    label_splits = [[0,1,2,3,4], [5,6,7,8,9]]
     trainset, testset = get_cifar10()
-    trainloaders = get_split_dataset(trainset, label_splits, args.batch_size, shuffle=True, num_workers=2)
-    testloaders = get_split_dataset(testset, label_splits, args.batch_size, shuffle=False, num_workers=2)
+    trainloaders = get_split_dataset(trainset, label_threshold=4, crossover_percent=args.split_overlap, batch_size=args.batch_size, shuffle=True, num_workers=2)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2)
     
 
-    for split_idx in range(len(label_splits)):
+    for split_idx in range(len(trainloaders)):
         print(f"Training Split: {split_idx+1}")
         model = ResNet(args.depth, args.width_multiplier, 0, num_classes=10).to(device)
         if args.opt == "adam":
@@ -47,14 +47,14 @@ def main():
         best_acc = 0.0
         for epoch in range(1, args.epochs + 1):
             train_acc = train(args, model, device, trainloaders[split_idx], optimizer, epoch, True)
-            test(model, device, testloaders[split_idx], True)
+            test(model, device, testloader, True)
             scheduler.step()
 
             if train_acc > best_acc:
                 best_acc = train_acc
                 save_model(model, 
                            checkpoint_name=f"cifar10_{str(args.seed)}_resnet_depth_{str(args.depth)}_{str(args.width_multiplier)}_split_{str(split_idx)}.pt",
-                           experiment_name=f"resnet{str(args.depth)}_cifar10_split_half"
+                           experiment_name=f"resnet{str(args.depth)}_cifar10_split_{str(args.split_overlap)}"
                            )
 
 

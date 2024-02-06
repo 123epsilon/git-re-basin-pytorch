@@ -6,6 +6,7 @@ import torch
 from models.resnet import ResNet
 from torchvision import datasets, transforms
 from utils.training import test
+from utils.data import get_cifar10
 from tqdm import tqdm
 import copy
 import matplotlib.pyplot as plt
@@ -47,19 +48,12 @@ def main():
     updated_params = apply_permutation(permutation_spec, final_permutation, model_b.state_dict())
 
     
-    # test against mnist
-    transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
+    # test against cifar10
+    trainset, testset = get_cifar10()
 
-
-    trainset = datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform)
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=1024,
                                             shuffle=True, num_workers=2)
 
-    testset = datasets.CIFAR10(root='./data', train=False,
-                                        download=True, transform=transform)
     test_loader = torch.utils.data.DataLoader(testset, batch_size=1024,
                                             shuffle=False, num_workers=2)
 
