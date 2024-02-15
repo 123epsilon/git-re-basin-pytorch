@@ -1,6 +1,6 @@
 from utils.weight_matching import weight_matching, apply_permutation, resnet20_permutation_spec, resnet50_permutation_spec
 from utils.utils import  lerp
-from utils.plot import plot_interp_acc
+from utils.plot import plot_interp_acc, plot_interp_loss
 import argparse
 import torch
 from models.resnet import ResNet
@@ -75,6 +75,12 @@ def main():
 	test_acc_interp_naive = []
 	train_acc_interp_clever = []
 	train_acc_interp_naive = []
+
+	test_loss_interp_clever = []
+	test_loss_interp_naive = []
+	train_loss_interp_clever = []
+	train_loss_interp_naive = []
+
 	# naive
 	model_b.load_state_dict(checkpoint_b)
 	model_a_dict = copy.deepcopy(model_a.state_dict())
@@ -84,8 +90,10 @@ def main():
 		model_b.load_state_dict(naive_p)
 		test_loss, acc = test(model_b.cuda(), 'cuda', test_loader, True)
 		test_acc_interp_naive.append(acc)
+		test_loss_interp_naive.append(test_loss)
 		train_loss, acc = test(model_b.cuda(), 'cuda', train_loader, True)
 		train_acc_interp_naive.append(acc)
+		train_loss_interp_naive.append(train_loss)
 
 	# smart
 	model_b.load_state_dict(updated_params)
@@ -98,9 +106,13 @@ def main():
 		model_b.load_state_dict(naive_p)
 		test_loss, acc = test(model_b.cuda(), 'cuda', test_loader, True)
 		test_acc_interp_clever.append(acc)
+		test_loss_interp_clever.append(test_loss)
 		train_loss, acc = test(model_b.cuda(), 'cuda', train_loader, True)
 		train_acc_interp_clever.append(acc)
+		train_loss_interp_clever.append(train_loss)
 
+
+	# plot interp accuracy
 	fig = plot_interp_acc(lambdas, train_acc_interp_naive, test_acc_interp_naive,
 					train_acc_interp_clever, test_acc_interp_clever)
 	
@@ -109,6 +121,17 @@ def main():
 	fig_fp = os.path.join(fig_path, f"{args.dataset}_resnet{str(args.depth)}_{str(args.width_multiplier)}_weight_matching_interp_accuracy_epoch.png")
 
 	plt.savefig(fig_fp, dpi=300)
+
+	# plot interp loss
+	fig = plot_interp_loss(lambdas, train_loss_interp_naive, test_loss_interp_naive,
+				train_loss_interp_clever, test_loss_interp_clever)
+	
+	fig_path = os.path.join(args.output_dir, args.tag)
+	os.makedirs(fig_path, exist_ok=True)
+	fig_fp = os.path.join(fig_path, f"{args.dataset}_resnet{str(args.depth)}_{str(args.width_multiplier)}_weight_matching_interp_loss_epoch.png")
+
+	plt.savefig(fig_fp, dpi=300)
+
 
 if __name__ == "__main__":
   main()
